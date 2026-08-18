@@ -15,8 +15,12 @@
  */
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY as string | undefined;
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 const GIS_SRC = "https://accounts.google.com/gsi/client";
+const GAPI_SRC = "https://apis.google.com/js/api.js";
+const FOLDER_MIME = "application/vnd.google-apps.folder";
+const SHARED_FOLDER_NAME = "immo-search";
 
 // --- Minimal GIS typings (the script has no bundled types) -----------------
 type TokenResponse = {
@@ -30,6 +34,13 @@ type TokenClient = {
 };
 declare global {
   interface Window {
+    // Picker + gapi are loosely typed (no bundled types for these scripts).
+    gapi?: {
+      load: (
+        name: string,
+        cfg: { callback: () => void; onerror?: () => void }
+      ) => void;
+    };
     google?: {
       accounts: {
         oauth2: {
@@ -40,6 +51,8 @@ declare global {
           }) => TokenClient;
         };
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      picker?: any;
     };
   }
 }
@@ -126,15 +139,20 @@ export const connectDrive = async (): Promise<void> => {
 };
 
 /**
- * Upload an image to the user's Drive, make it public, and return its file id.
- * Uses a multipart upload (metadata + bytes in one request).
+ * Upload an image to Drive, make it public, and return its file id. Uses a
+ * multipart upload (metadata + bytes in one request). When `folderId` is given,
+ * the file is placed in that (shared) folder.
  */
-export const uploadImageToDrive = async (file: File): Promise<string> => {
+export const uploadImageToDrive = async (
+  file: File,
+  folderId?: string
+): Promise<string> => {
   const token = await getDriveToken();
 
-  const metadata = {
-    name: `immo-search/${Date.now()}-${file.name}`,
+  const metadata: Record<string, unknown> = {
+    name: `${Date.now()}-${file.name}`,
     mimeType: file.type || "image/jpeg",
+    ...(folderId ? { parents: [folderId] } : {}),
   };
   const body = new FormData();
   body.append(
@@ -174,3 +192,131 @@ export const uploadImageToDrive = async (file: File): Promise<string> => {
 /** Public display URL for a Drive image (least-flaky endpoint). */
 export const driveThumbUrl = (fileId: string, width = 1000): string =>
   `https://drive.google.com/thumbnail?id=${fileId}&sz=w${width}`;
+
+// --- Shared folder + Google Picker -----------------------------------------
+
+/** True when the folder Picker is usable (needs both a client id and API key). */
+export const isPickerConfigured = (): boolean => !!CLIENT_ID && !!API_KEY;
+
+export type DriveFolder = { id: string; name: string };
+
+/**
+ * Find (among app-created folders) or create the shared "immo-search" folder in
+ * the current user's Drive, then share it with the other allowed accounts as
+ * editors. Only the creator needs this; the other account authorizes via the
+ * Picker. Returns the folder.
+ */
+export const findOrCreateSharedFolder = async (
+  shareWithEmails: string[]
+): Promise<DriveFolder> => {
+  const token = await getDriveToken();
+  const auth = { Authorization: `Bearer ${token}` };
+
+  // drive.file only surfaces app-created files, so this finds our own folder.
+  const q = encodeURIComponent(
+    `name='${SHARED_FOLDER_NAME}' and mimeType='${FOLDER_MIME}' and trashed=false`
+  );
+  const listRes = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&spaces=drive`,
+    { headers: auth }
+  );
+  if (listRes.ok) {
+    const { files } = (await listRes.json()) as { files?: DriveFolder[] };
+    if (files && files.length > 0) return files[0];
+  }
+
+  // Create it.
+  const createRes = await fetch(
+    "https://www.googleapis.com/drive/v3/files?fields=id,name",
+    {
+      method: "POST",
+      headers: { ...auth, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: SHARED_FOLDER_NAME, mimeType: FOLDER_MIME }),
+    }
+  );
+  if (!createRes.ok) {
+    throw new Error(`Drive folder create failed (${createRes.status})`);
+  }
+  const folder = (await createRes.json()) as DriveFolder;
+
+  // Share with the other account(s). Ignore individual failures (e.g. already shared).
+  await Promise.all(
+    shareWithEmails.map((email) =>
+      fetch(
+        `https://www.googleapis.com/drive/v3/files/${folder.id}/permissions?sendNotificationEmail=false`,
+        {
+          method: "POST",
+          headers: { ...auth, "Content-Type": "application/json" },
+          body: JSON.stringify({ role: "writer", type: "user", emailAddress: email }),
+        }
+      ).catch(() => undefined)
+    )
+  );
+
+  return folder;
+};
+
+/** Ensure gapi + the Picker module are loaded. */
+const loadPicker = (): Promise<void> =>
+  new Promise((resolve, reject) => {
+    const loadModule = () => {
+      window.gapi!.load("picker", {
+        callback: () => resolve(),
+        onerror: () => reject(new Error("Failed to load Google Picker")),
+      });
+    };
+    if (window.google?.picker) return resolve();
+    if (window.gapi) return loadModule();
+    const existing = document.querySelector<HTMLScriptElement>(
+      `script[src="${GAPI_SRC}"]`
+    );
+    if (existing) {
+      existing.addEventListener("load", loadModule);
+      existing.addEventListener("error", () =>
+        reject(new Error("Failed to load gapi"))
+      );
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = GAPI_SRC;
+    s.async = true;
+    s.defer = true;
+    s.onload = loadModule;
+    s.onerror = () => reject(new Error("Failed to load gapi"));
+    document.head.appendChild(s);
+  });
+
+/**
+ * Open the Google Picker so the user can select a folder (including
+ * shared-with-me). Resolves with the chosen folder, or null if cancelled.
+ * Picking a folder grants this app drive.file access to it.
+ */
+export const pickDriveFolder = async (): Promise<DriveFolder | null> => {
+  if (!API_KEY) throw new Error("VITE_GOOGLE_API_KEY is not set.");
+  const token = await getDriveToken();
+  await loadPicker();
+  const picker = window.google!.picker;
+
+  return new Promise<DriveFolder | null>((resolve) => {
+    const view = new picker.DocsView(picker.ViewId.FOLDERS)
+      .setSelectFolderEnabled(true)
+      .setIncludeFolders(true)
+      .setMimeTypes(FOLDER_MIME);
+
+    const instance = new picker.PickerBuilder()
+      .addView(view)
+      .enableFeature(picker.Feature.SUPPORT_DRIVES)
+      .setOAuthToken(token)
+      .setDeveloperKey(API_KEY)
+      .setCallback((data: { action: string; docs?: { id: string; name: string }[] }) => {
+        if (data.action === picker.Action.PICKED) {
+          const doc = data.docs?.[0];
+          resolve(doc ? { id: doc.id, name: doc.name } : null);
+        } else if (data.action === picker.Action.CANCEL) {
+          resolve(null);
+        }
+      })
+      .build();
+    instance.setVisible(true);
+  });
+};

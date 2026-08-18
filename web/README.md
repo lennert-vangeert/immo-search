@@ -32,10 +32,24 @@ After editing, redeploy the rules: `npx firebase deploy --only firestore:rules`.
   sets `dev` automatically.
 - `VITE_FIREBASE_*` — the real Firebase web config (prod only).
 - `VITE_GOOGLE_CLIENT_ID` — OAuth **web client id** used to mint Google Drive
-  upload tokens for listing thumbnails. Reuse the client id Firebase Auth
-  already created for this project, and enable the **Google Drive API** in that
-  Google Cloud project. When unset, thumbnail upload is disabled gracefully
-  (the rest of the app works).
+  upload tokens for listing thumbnails. Enable the **Google Drive API** in the
+  Google Cloud project, and add the app's origins (e.g. `http://localhost:4000`,
+  your prod URL) to the client's **Authorized JavaScript origins**. When unset,
+  thumbnail upload is disabled gracefully (the rest of the app works).
+- `VITE_GOOGLE_API_KEY` — a **browser API key** for the Google **Picker**, used
+  to let the second account authorize the shared thumbnail folder. Enable the
+  **Google Picker API** in the same project. When unset, the folder picker is
+  disabled (the account that first set up the folder can still upload).
+
+### Shared Drive folder for thumbnails
+
+Thumbnails go into a single **shared** Drive folder both accounts manage:
+- The first account to upload auto-creates an `immo-search` folder in its Drive
+  and shares it with the other allowed account (Editor).
+- The other account clicks **Authorize shared folder** once and picks that
+  folder via the Google Picker (grants its `drive.file` access to it).
+- The folder id is stored in Firestore `config/drive` so both converge on it.
+The scope stays `drive.file` (least privilege) throughout.
 
 ### One-time prod setup
 

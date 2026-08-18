@@ -64,5 +64,14 @@ service cloud.firestore {
         && validListing(request.resource.data);
       allow delete: if isAllowed();
     }
+
+    // App config (e.g. the shared Drive folder for thumbnails). Shared + small.
+    match /config/{doc} {
+      allow read: if isAllowed();
+      allow write: if isAllowed()
+        && request.resource.data.folderId is string
+        && request.resource.data.folderName is string
+        && request.resource.data.updatedBy is string;
+    }
   }
 }

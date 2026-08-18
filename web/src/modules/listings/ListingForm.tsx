@@ -1,26 +1,14 @@
-import { useState } from "react";
 import {
-  ActionIcon,
-  Box,
   Button,
-  FileButton,
   Group,
-  Image,
   NumberInput,
   Select,
   Stack,
   Switch,
-  Text,
   Textarea,
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { notifications } from "@mantine/notifications";
-import {
-  IconBrandGoogleDrive,
-  IconTrash,
-  IconUpload,
-} from "@tabler/icons-react";
 import {
   EPC_LABELS,
   LISTING_STATUSES,
@@ -30,14 +18,8 @@ import {
   type TransactionType,
 } from "@data/listings";
 import type { ListingInput, ListingWithId } from "@services/listings";
-import {
-  connectDrive,
-  driveThumbUrl,
-  isDriveConfigured,
-  isDriveConnected,
-  uploadImageToDrive,
-} from "@services/drive";
 import { useTranslate } from "@global/localization";
+import ThumbnailField from "./ThumbnailField";
 
 // Flat form state. Numbers use "" for "not set" (NumberInput's empty value).
 type ListingFormValues = {
@@ -85,21 +67,6 @@ export default function ListingForm({
   onCancel: () => void;
 }) {
   const { t } = useTranslate("listings");
-  const [uploading, setUploading] = useState(false);
-  const [connecting, setConnecting] = useState(false);
-  const [connected, setConnected] = useState(isDriveConnected());
-
-  const handleConnect = async () => {
-    setConnecting(true);
-    try {
-      await connectDrive();
-      setConnected(true);
-    } catch {
-      notifications.show({ color: "red", message: t("form.uploadError") });
-    } finally {
-      setConnecting(false);
-    }
-  };
 
   const form = useForm<ListingFormValues>({
     initialValues: toFormValues(listing),
@@ -112,20 +79,6 @@ export default function ListingForm({
 
   const opts = <T extends string>(values: readonly T[], ns: string) =>
     values.map((value) => ({ value, label: t(`${ns}.${value}`) }));
-
-  const handleUpload = async (file: File | null) => {
-    if (!file) return;
-    setUploading(true);
-    try {
-      const fileId = await uploadImageToDrive(file);
-      form.setFieldValue("thumbnailFileId", fileId);
-      notifications.show({ color: "green", message: t("form.uploadDone") });
-    } catch {
-      notifications.show({ color: "red", message: t("form.uploadError") });
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleSubmit = form.onSubmit((v) => {
     const input: ListingInput = {
@@ -144,8 +97,6 @@ export default function ListingForm({
     };
     onSubmit(input);
   });
-
-  const thumbId = form.values.thumbnailFileId;
 
   return (
     <form onSubmit={handleSubmit}>
@@ -231,63 +182,11 @@ export default function ListingForm({
           {...form.getInputProps("notes")}
         />
 
-        {/* Thumbnail upload (Google Drive) */}
-        <Box>
-          <Text size="sm" fw={500} mb={4}>
-            {t("form.thumbnail")}
-          </Text>
-          {isDriveConfigured() ? (
-            <Group>
-              {thumbId ? (
-                <Group>
-                  <Image
-                    src={driveThumbUrl(thumbId, 200)}
-                    w={96}
-                    h={72}
-                    radius="md"
-                    fit="cover"
-                    alt=""
-                    fallbackSrc="https://placehold.co/200x150?text=Drive"
-                  />
-                  <ActionIcon
-                    variant="light"
-                    color="red"
-                    aria-label={t("form.thumbnailRemove")}
-                    onClick={() => form.setFieldValue("thumbnailFileId", null)}
-                  >
-                    <IconTrash size={16} />
-                  </ActionIcon>
-                </Group>
-              ) : connected ? (
-                <FileButton onChange={handleUpload} accept="image/*">
-                  {(props) => (
-                    <Button
-                      {...props}
-                      variant="light"
-                      loading={uploading}
-                      leftSection={<IconUpload size={16} />}
-                    >
-                      {t("form.thumbnailUpload")}
-                    </Button>
-                  )}
-                </FileButton>
-              ) : (
-                <Button
-                  variant="default"
-                  loading={connecting}
-                  leftSection={<IconBrandGoogleDrive size={16} />}
-                  onClick={handleConnect}
-                >
-                  {t("form.thumbnailConnect")}
-                </Button>
-              )}
-            </Group>
-          ) : (
-            <Text size="xs" c="dimmed">
-              {t("form.thumbnailDisabled")}
-            </Text>
-          )}
-        </Box>
+        {/* Thumbnail upload (Google Drive shared folder) */}
+        <ThumbnailField
+          value={form.values.thumbnailFileId}
+          onChange={(id) => form.setFieldValue("thumbnailFileId", id)}
+        />
 
         <Group justify="flex-end" mt="sm">
           <Button variant="default" type="button" onClick={onCancel}>
