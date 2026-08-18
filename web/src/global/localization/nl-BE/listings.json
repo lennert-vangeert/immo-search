@@ -2,7 +2,7 @@
   "title": "Panden",
   "add": "Pand toevoegen",
   "empty": "Nog geen panden — voeg je eerste toe.",
-  "emptyFiltered": "Geen panden voldoen aan deze filters.",
+  "emptyFiltered": "Geen panden gevonden voor deze filters.",
   "untitled": "Naamloos pand",
   "perMonth": "/mnd",
   "transactionType": {
@@ -16,9 +16,9 @@
     "rejected": "Afgewezen"
   },
   "filters": {
-    "type": "Transactietype",
+    "type": "Huur of koop",
     "status": "Status",
-    "allTypes": "Alle types",
+    "allTypes": "Huur en koop",
     "allStatuses": "Alle statussen",
     "favoritesOnly": "Favorieten"
   },
@@ -42,7 +42,7 @@
   "actions": {
     "edit": "Pand bewerken",
     "delete": "Pand verwijderen",
-    "favorite": "Favoriet wisselen"
+    "favorite": "Favoriet aan/uit"
   },
   "modal": {
     "add": "Pand toevoegen",
@@ -50,7 +50,7 @@
   },
   "confirmDelete": {
     "title": "Pand verwijderen",
-    "body": "\"{{name}}\" verwijderen? Dit kan niet ongedaan gemaakt worden.",
+    "body": "\"{{name}}\" verwijderen? Dit kan niet ongedaan worden gemaakt.",
     "confirm": "Verwijderen"
   },
   "notifications": {
@@ -60,7 +60,7 @@
     "error": "Er ging iets mis."
   },
   "form": {
-    "url": "URL van het pand",
+    "url": "Link naar het pand",
     "title": "Titel",
     "titlePlaceholder": "bv. Lichtrijke rijwoning bij het park",
     "transactionType": "Huur of koop",
@@ -72,16 +72,16 @@
     "status": "Status",
     "favorite": "Favoriet",
     "notes": "Notities",
-    "thumbnail": "Miniatuur",
-    "thumbnailConnect": "Google Drive verbinden",
-    "thumbnailUpload": "Afbeelding uploaden",
-    "thumbnailRemove": "Afbeelding verwijderen",
-    "thumbnailDisabled": "Afbeeldingen uploaden is niet beschikbaar (Google client-ID niet ingesteld).",
+    "thumbnail": "Foto",
+    "thumbnailConnect": "Verbinden met Google Drive",
+    "thumbnailUpload": "Foto uploaden",
+    "thumbnailRemove": "Foto verwijderen",
+    "thumbnailDisabled": "Foto's uploaden kan niet (Google client-ID ontbreekt).",
     "folderSetup": "Gedeelde map instellen",
-    "folderAuthorize": "\"{{name}}\" autoriseren",
+    "folderAuthorize": "Map \"{{name}}\" koppelen",
     "folderInUse": "→ {{name}}",
-    "pickerDisabled": "Mapkiezer niet beschikbaar (Google API-sleutel niet ingesteld).",
-    "uploadDone": "Afbeelding geüpload",
+    "pickerDisabled": "Map kiezen kan niet (Google API-sleutel ontbreekt).",
+    "uploadDone": "Foto geüpload",
     "uploadError": "Uploaden mislukt. Probeer opnieuw.",
     "cancel": "Annuleren",
     "save": "Opslaan",
@@ -91,7 +91,7 @@
   "detail": {
     "back": "Terug naar panden",
     "notFound": "Dit pand bestaat niet meer.",
-    "previewBlocked": "Als de preview leeg blijft, blokkeert deze site inbedding — open ze rechtstreeks.",
+    "previewBlocked": "Blijft het voorbeeld leeg? Dan blokkeert deze website de weergave hier — open het pand rechtstreeks.",
     "openListing": "Pand openen"
   }
 }
