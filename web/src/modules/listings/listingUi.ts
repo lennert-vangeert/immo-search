@@ -81,6 +81,16 @@ export const hostnameOf = (url: string): string => {
   }
 };
 
+/** True only for a real absolute http(s) URL (guards against embedding our own app). */
+export const isValidHttpUrl = (url: string): boolean => {
+  try {
+    const u = new URL(url);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
 /** Format a price with EUR grouping; rent gets a "/mo" style suffix via i18n. */
 export const formatPrice = (price: number): string =>
   `€${price.toLocaleString("nl-BE")}`;

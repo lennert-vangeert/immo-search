@@ -29,6 +29,7 @@ import {
   IconTrash,
 } from "@tabler/icons-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "@global/firebase/useAuth";
 import { useTranslate } from "@global/localization";
 import { LISTING_STATUSES, type ListingStatus } from "@data/listings";
 import {
@@ -36,13 +37,14 @@ import {
   updateListing,
   type ListingInput,
 } from "@services/listings";
-import { driveThumbUrl } from "@services/drive";
+import { deleteDriveFile, driveThumbUrl, hasDriveConsent } from "@services/drive";
 import { useListings } from "./useListings";
 import ListingForm from "./ListingForm";
 import {
   epcColor,
   formatPrice,
   hostnameOf,
+  isValidHttpUrl,
   listingLabel,
   statusColor,
 } from "./listingUi";
@@ -50,6 +52,7 @@ import {
 export default function ListingDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { t, tL } = useTranslate("listings");
   const { listings, loading } = useListings();
   const [editOpen, setEditOpen] = useState(false);
@@ -123,6 +126,9 @@ export default function ListingDetail() {
       onConfirm: async () => {
         try {
           await deleteListing(listing.id);
+          if (listing.thumbnailFileId && user && hasDriveConsent(user.uid)) {
+            deleteDriveFile(listing.thumbnailFileId).catch(() => undefined);
+          }
           notifications.show({
             message: t("notifications.deleted"),
             color: "green",
@@ -201,52 +207,69 @@ export default function ListingDetail() {
               pos="relative"
               style={{ height: 520, background: "var(--mantine-color-body)" }}
             >
-              {/* Fallback sits underneath; the iframe covers it if it loads. */}
-              <Stack
-                align="center"
-                justify="center"
-                gap="sm"
-                pos="absolute"
-                inset={0}
-                p="xl"
-              >
-                {listing.thumbnailFileId && (
-                  <Image
-                    src={driveThumbUrl(listing.thumbnailFileId)}
-                    mah={220}
-                    w="auto"
-                    radius="md"
-                    alt={label}
-                  />
-                )}
-                <Text c="dimmed" size="sm" ta="center" maw={360}>
-                  {t("detail.previewBlocked")}
-                </Text>
-                <Button
-                  component="a"
-                  href={listing.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="gradient"
-                  rightSection={<IconExternalLink size={16} />}
-                >
-                  {t("detail.openListing")}
-                </Button>
-              </Stack>
+              {listing.thumbnailFileId ? (
+                // Prefer the saved image — reliable, no embedding issues.
+                <Image
+                  src={driveThumbUrl(listing.thumbnailFileId)}
+                  h="100%"
+                  w="100%"
+                  fit="contain"
+                  alt={label}
+                  fallbackSrc="https://placehold.co/600x400?text=No+image"
+                />
+              ) : isValidHttpUrl(listing.url) ? (
+                <>
+                  {/* Fallback underneath; the iframe covers it if the site allows it. */}
+                  <Stack
+                    align="center"
+                    justify="center"
+                    gap="sm"
+                    pos="absolute"
+                    inset={0}
+                    p="xl"
+                  >
+                    <Text c="dimmed" size="sm" ta="center" maw={360}>
+                      {t("detail.previewBlocked")}
+                    </Text>
+                    <Button
+                      component="a"
+                      href={listing.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      variant="gradient"
+                      rightSection={<IconExternalLink size={16} />}
+                    >
+                      {t("detail.openListing")}
+                    </Button>
+                  </Stack>
 
-              <iframe
-                src={listing.url}
-                title={label}
-                loading="lazy"
-                referrerPolicy="no-referrer"
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  border: 0,
-                }}
-              />
+                  <iframe
+                    src={listing.url}
+                    title={label}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      width: "100%",
+                      height: "100%",
+                      border: 0,
+                    }}
+                  />
+                </>
+              ) : (
+                <Stack
+                  align="center"
+                  justify="center"
+                  pos="absolute"
+                  inset={0}
+                  p="xl"
+                >
+                  <Text c="dimmed" size="sm" ta="center" maw={360}>
+                    {t("detail.noPreview")}
+                  </Text>
+                </Stack>
+              )}
             </Box>
           </Paper>
         </Grid.Col>

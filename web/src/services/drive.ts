@@ -193,6 +193,31 @@ export const uploadImageToDrive = async (
 export const driveThumbUrl = (fileId: string, width = 1000): string =>
   `https://drive.google.com/thumbnail?id=${fileId}&sz=w${width}`;
 
+/** Best-effort delete of a Drive file (e.g. a listing's thumbnail). 404 = already gone. */
+export const deleteDriveFile = async (fileId: string): Promise<void> => {
+  const token = await getDriveToken();
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${fileId}`,
+    { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`Drive delete failed (${res.status})`);
+  }
+};
+
+// --- Consent flag (per account, per browser) -------------------------------
+// Lets us reconnect silently and know when a Drive call can be made without a
+// popup (used to decide whether to delete a thumbnail on listing delete).
+const consentKey = (uid: string) => `immo-drive-consented:${uid}`;
+export const hasDriveConsent = (uid: string): boolean =>
+  !!uid && !!localStorage.getItem(consentKey(uid));
+export const markDriveConsent = (uid: string): void => {
+  if (uid) localStorage.setItem(consentKey(uid), "1");
+};
+export const clearDriveConsent = (uid: string): void => {
+  if (uid) localStorage.removeItem(consentKey(uid));
+};
+
 // --- Shared folder + Google Picker -----------------------------------------
 
 /** True when the folder Picker is usable (needs both a client id and API key). */

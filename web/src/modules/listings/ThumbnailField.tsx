@@ -20,12 +20,15 @@ import { useAuth } from "@global/firebase/useAuth";
 import { useTranslate } from "@global/localization";
 import { ALLOWED_USER_EMAILS } from "@global/allowedUsers";
 import {
+  clearDriveConsent,
   connectDrive,
   driveThumbUrl,
   findOrCreateSharedFolder,
+  hasDriveConsent,
   isDriveConfigured,
   isDriveConnected,
   isPickerConfigured,
+  markDriveConsent,
   pickDriveFolder,
   uploadImageToDrive,
 } from "@services/drive";
@@ -37,10 +40,6 @@ import {
 
 const authKey = (uid: string, folderId: string) =>
   `immo-drive-auth:${uid}:${folderId}`;
-
-// Set once a user has granted Drive consent; lets us reconnect silently next
-// session without showing the "Connect" button.
-const consentKey = (uid: string) => `immo-drive-consented:${uid}`;
 
 /**
  * Thumbnail picker backed by Google Drive + a shared folder.
@@ -72,11 +71,11 @@ export default function ThumbnailField({
   // Reconnect silently if this account has consented before — no button needed.
   useEffect(() => {
     if (!isDriveConfigured() || connected || !uid) return;
-    if (!localStorage.getItem(consentKey(uid))) return;
+    if (!hasDriveConsent(uid)) return;
     let cancelled = false;
     connectDrive()
       .then(() => !cancelled && setConnected(true))
-      .catch(() => localStorage.removeItem(consentKey(uid)));
+      .catch(() => clearDriveConsent(uid));
     return () => {
       cancelled = true;
     };
@@ -100,7 +99,7 @@ export default function ThumbnailField({
     setBusy("connect");
     try {
       await connectDrive();
-      localStorage.setItem(consentKey(uid), "1");
+      markDriveConsent(uid);
       setConnected(true);
     } catch {
       fail();

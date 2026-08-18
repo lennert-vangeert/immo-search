@@ -16,6 +16,7 @@
     "rejected": "Afgewezen"
   },
   "filters": {
+    "button": "Filters",
     "type": "Huur of koop",
     "status": "Status",
     "allTypes": "Huur en koop",
@@ -92,6 +93,7 @@
     "back": "Terug naar panden",
     "notFound": "Dit pand bestaat niet meer.",
     "previewBlocked": "Blijft het voorbeeld leeg? Dan blokkeert deze website de weergave hier — open het pand rechtstreeks.",
+    "noPreview": "Geen voorbeeld beschikbaar.",
     "openListing": "Pand openen"
   }
 }

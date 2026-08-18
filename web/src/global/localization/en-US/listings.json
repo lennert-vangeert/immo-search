@@ -16,6 +16,7 @@
     "rejected": "Rejected"
   },
   "filters": {
+    "button": "Filters",
     "type": "Transaction type",
     "status": "Status",
     "allTypes": "All types",
@@ -92,6 +93,7 @@
     "back": "Back to listings",
     "notFound": "This listing no longer exists.",
     "previewBlocked": "If the preview is blank, this site blocks embedding — open it directly.",
+    "noPreview": "No preview available.",
     "openListing": "Open listing"
   }
 }

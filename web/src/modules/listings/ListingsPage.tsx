@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import {
+  Badge,
   Button,
   Container,
   Group,
   Loader,
   Modal,
+  Popover,
   SegmentedControl,
   Select,
   Stack,
@@ -16,6 +18,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import {
+  IconAdjustmentsHorizontal,
   IconArrowsSort,
   IconLayoutGrid,
   IconList,
@@ -25,6 +28,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "@global/firebase/useAuth";
+import { deleteDriveFile, hasDriveConsent } from "@services/drive";
 import { useTranslate } from "@global/localization";
 import type { AppDispatch, RootState } from "@global/store/store";
 import { setListingsView } from "@global/store/uiSlice";
@@ -118,6 +122,11 @@ export default function ListingsPage() {
       onConfirm: async () => {
         try {
           await deleteListing(l.id);
+          // Best-effort: remove the thumbnail from Drive too (no popup — only
+          // when this account has already consented).
+          if (l.thumbnailFileId && user && hasDriveConsent(user.uid)) {
+            deleteDriveFile(l.thumbnailFileId).catch(() => undefined);
+          }
           notifications.show({
             message: t("notifications.deleted"),
             color: "green",
@@ -157,6 +166,89 @@ export default function ListingsPage() {
     }
   };
 
+  const activeFilterCount =
+    (filters.transactionType !== "all" ? 1 : 0) +
+    (filters.status !== "all" ? 1 : 0) +
+    (filters.favoritesOnly ? 1 : 0);
+
+  // Filter/sort controls, reused inline (desktop) and inside a popover (mobile).
+  const typeSelect = (full: boolean) => (
+    <Select
+      aria-label={t("filters.type")}
+      w={full ? "100%" : 140}
+      data={[
+        { value: "all", label: t("filters.allTypes") },
+        { value: "buy", label: t("transactionType.buy") },
+        { value: "rent", label: t("transactionType.rent") },
+      ]}
+      value={filters.transactionType}
+      onChange={(v) =>
+        setFilters((f) => ({
+          ...f,
+          transactionType: (v as ListingFilters["transactionType"]) ?? "all",
+        }))
+      }
+      allowDeselect={false}
+    />
+  );
+
+  const statusSelect = (full: boolean) => (
+    <Select
+      aria-label={t("filters.status")}
+      w={full ? "100%" : 150}
+      data={[
+        { value: "all", label: t("filters.allStatuses") },
+        ...LISTING_STATUSES.map((s) => ({ value: s, label: t(`status.${s}`) })),
+      ]}
+      value={filters.status}
+      onChange={(v) =>
+        setFilters((f) => ({
+          ...f,
+          status: (v as ListingFilters["status"]) ?? "all",
+        }))
+      }
+      allowDeselect={false}
+    />
+  );
+
+  const favSwitch = (
+    <Switch
+      label={
+        <Group gap={4} wrap="nowrap">
+          <IconStar size={14} />
+          <Text size="sm">{t("filters.favoritesOnly")}</Text>
+        </Group>
+      }
+      checked={filters.favoritesOnly}
+      onChange={(e) =>
+        setFilters((f) => ({ ...f, favoritesOnly: e.currentTarget.checked }))
+      }
+    />
+  );
+
+  const sortSelect = (full: boolean) => (
+    <Select
+      aria-label={t("sort.label")}
+      leftSection={<IconArrowsSort size={16} />}
+      w={full ? "100%" : 170}
+      data={sortOptions}
+      value={sortKey}
+      onChange={(v) => v && setSortKey(v as SortKey)}
+      allowDeselect={false}
+    />
+  );
+
+  const viewToggle = (
+    <SegmentedControl
+      value={view}
+      onChange={(v) => dispatch(setListingsView(v as "table" | "cards"))}
+      data={[
+        { value: "table", label: <IconList size={16} /> },
+        { value: "cards", label: <IconLayoutGrid size={16} /> },
+      ]}
+    />
+  );
+
   return (
     <Container size="lg">
       <Group justify="space-between" mb="lg">
@@ -171,81 +263,46 @@ export default function ListingsPage() {
         </Button>
       </Group>
 
-      {/* Toolbar */}
-      <Group justify="space-between" mb="md" gap="sm" wrap="wrap">
-        <Group gap="sm" wrap="wrap">
-          <Select
-            aria-label={t("filters.type")}
-            w={140}
-            data={[
-              { value: "all", label: t("filters.allTypes") },
-              { value: "buy", label: t("transactionType.buy") },
-              { value: "rent", label: t("transactionType.rent") },
-            ]}
-            value={filters.transactionType}
-            onChange={(v) =>
-              setFilters((f) => ({
-                ...f,
-                transactionType: (v as ListingFilters["transactionType"]) ?? "all",
-              }))
-            }
-            allowDeselect={false}
-          />
-          <Select
-            aria-label={t("filters.status")}
-            w={150}
-            data={[
-              { value: "all", label: t("filters.allStatuses") },
-              ...LISTING_STATUSES.map((s) => ({
-                value: s,
-                label: t(`status.${s}`),
-              })),
-            ]}
-            value={filters.status}
-            onChange={(v) =>
-              setFilters((f) => ({
-                ...f,
-                status: (v as ListingFilters["status"]) ?? "all",
-              }))
-            }
-            allowDeselect={false}
-          />
-          <Switch
-            label={
-              <Group gap={4} wrap="nowrap">
-                <IconStar size={14} />
-                <Text size="sm">{t("filters.favoritesOnly")}</Text>
-              </Group>
-            }
-            checked={filters.favoritesOnly}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                favoritesOnly: e.currentTarget.checked,
-              }))
-            }
-          />
+      {/* Toolbar — inline on desktop, collapsed into a popover on mobile */}
+      <Group justify="space-between" mb="md" gap="sm" visibleFrom="sm">
+        <Group gap="sm">
+          {typeSelect(false)}
+          {statusSelect(false)}
+          {favSwitch}
         </Group>
+        <Group gap="sm">
+          {sortSelect(false)}
+          {viewToggle}
+        </Group>
+      </Group>
 
-        <Group gap="sm" wrap="wrap">
-          <Select
-            aria-label={t("sort.label")}
-            leftSection={<IconArrowsSort size={16} />}
-            w={170}
-            data={sortOptions}
-            value={sortKey}
-            onChange={(v) => v && setSortKey(v as SortKey)}
-            allowDeselect={false}
-          />
-          <SegmentedControl
-            value={view}
-            onChange={(v) => dispatch(setListingsView(v as "table" | "cards"))}
-            data={[
-              { value: "table", label: <IconList size={16} /> },
-              { value: "cards", label: <IconLayoutGrid size={16} /> },
-            ]}
-          />
-        </Group>
+      <Group justify="space-between" mb="md" gap="sm" hiddenFrom="sm">
+        <Popover width={260} position="bottom-start" withArrow shadow="md">
+          <Popover.Target>
+            <Button
+              variant="default"
+              leftSection={<IconAdjustmentsHorizontal size={16} />}
+              rightSection={
+                activeFilterCount > 0 ? (
+                  <Badge size="xs" circle variant="filled">
+                    {activeFilterCount}
+                  </Badge>
+                ) : null
+              }
+            >
+              {t("filters.button")}
+            </Button>
+          </Popover.Target>
+          <Popover.Dropdown>
+            <Stack gap="sm">
+              {typeSelect(true)}
+              {statusSelect(true)}
+              {favSwitch}
+              {sortSelect(true)}
+            </Stack>
+          </Popover.Dropdown>
+        </Popover>
+        {viewToggle}
       </Group>
 
       {loading ? (
