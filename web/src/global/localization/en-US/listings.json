@@ -73,6 +73,7 @@
     "favorite": "Favorite",
     "notes": "Notes",
     "thumbnail": "Thumbnail",
+    "thumbnailConnect": "Connect Google Drive",
     "thumbnailUpload": "Upload image",
     "thumbnailRemove": "Remove image",
     "thumbnailDisabled": "Image upload is unavailable (Google client ID not configured).",

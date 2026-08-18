@@ -73,6 +73,7 @@
     "favorite": "Favoriet",
     "notes": "Notities",
     "thumbnail": "Miniatuur",
+    "thumbnailConnect": "Google Drive verbinden",
     "thumbnailUpload": "Afbeelding uploaden",
     "thumbnailRemove": "Afbeelding verwijderen",
     "thumbnailDisabled": "Afbeeldingen uploaden is niet beschikbaar (Google client-ID niet ingesteld).",

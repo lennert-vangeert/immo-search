@@ -112,6 +112,19 @@ const getDriveToken = async (): Promise<string> => {
 /** True when Drive uploads are configured (client id present). */
 export const isDriveConfigured = (): boolean => !!CLIENT_ID;
 
+/** True when we hold a still-valid Drive token (no popup needed to upload). */
+export const isDriveConnected = (): boolean =>
+  !!cachedToken && Date.now() < cachedToken.expiresAt - 60_000;
+
+/**
+ * Request Drive access. MUST be called directly from a click handler — the
+ * consent popup can only open in response to a user gesture, so we do this on
+ * its own button rather than after the file picker (which would be blocked).
+ */
+export const connectDrive = async (): Promise<void> => {
+  await getDriveToken();
+};
+
 /**
  * Upload an image to the user's Drive, make it public, and return its file id.
  * Uses a multipart upload (metadata + bytes in one request).

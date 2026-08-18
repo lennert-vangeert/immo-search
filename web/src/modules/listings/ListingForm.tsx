@@ -16,7 +16,11 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
-import { IconTrash, IconUpload } from "@tabler/icons-react";
+import {
+  IconBrandGoogleDrive,
+  IconTrash,
+  IconUpload,
+} from "@tabler/icons-react";
 import {
   EPC_LABELS,
   LISTING_STATUSES,
@@ -27,8 +31,10 @@ import {
 } from "@data/listings";
 import type { ListingInput, ListingWithId } from "@services/listings";
 import {
+  connectDrive,
   driveThumbUrl,
   isDriveConfigured,
+  isDriveConnected,
   uploadImageToDrive,
 } from "@services/drive";
 import { useTranslate } from "@global/localization";
@@ -80,6 +86,20 @@ export default function ListingForm({
 }) {
   const { t } = useTranslate("listings");
   const [uploading, setUploading] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+  const [connected, setConnected] = useState(isDriveConnected());
+
+  const handleConnect = async () => {
+    setConnecting(true);
+    try {
+      await connectDrive();
+      setConnected(true);
+    } catch {
+      notifications.show({ color: "red", message: t("form.uploadError") });
+    } finally {
+      setConnecting(false);
+    }
+  };
 
   const form = useForm<ListingFormValues>({
     initialValues: toFormValues(listing),
@@ -238,7 +258,7 @@ export default function ListingForm({
                     <IconTrash size={16} />
                   </ActionIcon>
                 </Group>
-              ) : (
+              ) : connected ? (
                 <FileButton onChange={handleUpload} accept="image/*">
                   {(props) => (
                     <Button
@@ -251,6 +271,15 @@ export default function ListingForm({
                     </Button>
                   )}
                 </FileButton>
+              ) : (
+                <Button
+                  variant="default"
+                  loading={connecting}
+                  leftSection={<IconBrandGoogleDrive size={16} />}
+                  onClick={handleConnect}
+                >
+                  {t("form.thumbnailConnect")}
+                </Button>
               )}
             </Group>
           ) : (
