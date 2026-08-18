@@ -98,6 +98,7 @@
     "thumbnail": "Thumbnail",
     "thumbnailConnect": "Connect Google Drive",
     "thumbnailUpload": "Upload image",
+    "thumbnailPaste": "…or paste an image (Ctrl/⌘V)",
     "thumbnailRemove": "Remove image",
     "thumbnailDisabled": "Image upload is unavailable (Google client ID not configured).",
     "folderSetup": "Set up shared folder",

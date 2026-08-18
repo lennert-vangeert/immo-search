@@ -7,6 +7,7 @@ import {
   Group,
   Image,
   Loader,
+  Stack,
   Text,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
@@ -154,6 +155,26 @@ export default function ThumbnailField({
     }
   };
 
+  // Paste an image from the clipboard (e.g. a screenshot) → upload it. Only
+  // active when we're ready to upload and no thumbnail is set yet. Text pastes
+  // carry no image items, so this never interferes with typing.
+  const ready = isDriveConfigured() && connected && !!config && authorized;
+  useEffect(() => {
+    if (!ready || value) return;
+    const onPaste = (e: ClipboardEvent) => {
+      const item = Array.from(e.clipboardData?.items ?? []).find((i) =>
+        i.type.startsWith("image/")
+      );
+      const file = item?.getAsFile();
+      if (!file) return;
+      e.preventDefault();
+      void handleUpload(file);
+    };
+    document.addEventListener("paste", onPaste);
+    return () => document.removeEventListener("paste", onPaste);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, value, config]);
+
   return (
     <Box>
       <Text size="sm" fw={500} mb={4}>
@@ -253,23 +274,28 @@ export default function ThumbnailField({
 
     // Ready to upload.
     return (
-      <Group gap="xs">
-        <FileButton onChange={handleUpload} accept="image/*">
-          {(props) => (
-            <Button
-              {...props}
-              variant="light"
-              loading={busy === "upload"}
-              leftSection={<IconUpload size={16} />}
-            >
-              {t("form.thumbnailUpload")}
-            </Button>
-          )}
-        </FileButton>
+      <Stack gap={4}>
+        <Group gap="xs" wrap="wrap">
+          <FileButton onChange={handleUpload} accept="image/*">
+            {(props) => (
+              <Button
+                {...props}
+                variant="light"
+                loading={busy === "upload"}
+                leftSection={<IconUpload size={16} />}
+              >
+                {t("form.thumbnailUpload")}
+              </Button>
+            )}
+          </FileButton>
+          <Text size="xs" c="dimmed">
+            {t("form.thumbnailPaste")}
+          </Text>
+        </Group>
         <Text size="xs" c="dimmed">
           {t("form.folderInUse", { name: config.folderName })}
         </Text>
-      </Group>
+      </Stack>
     );
   }
 }

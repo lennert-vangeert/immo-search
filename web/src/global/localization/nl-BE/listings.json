@@ -98,6 +98,7 @@
     "thumbnail": "Foto",
     "thumbnailConnect": "Verbinden met Google Drive",
     "thumbnailUpload": "Foto uploaden",
+    "thumbnailPaste": "…of plak een afbeelding (Ctrl/⌘V)",
     "thumbnailRemove": "Foto verwijderen",
     "thumbnailDisabled": "Foto's uploaden kan niet (Google client-ID ontbreekt).",
     "folderSetup": "Gedeelde map instellen",
