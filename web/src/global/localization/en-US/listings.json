@@ -1,0 +1,92 @@
+{
+  "title": "Listings",
+  "add": "Add listing",
+  "empty": "No listings yet — add your first one.",
+  "emptyFiltered": "No listings match these filters.",
+  "untitled": "Untitled listing",
+  "perMonth": "/mo",
+  "transactionType": {
+    "rent": "Rent",
+    "buy": "Buy"
+  },
+  "status": {
+    "new": "New",
+    "contacted": "Contacted",
+    "visited": "Visited",
+    "rejected": "Rejected"
+  },
+  "filters": {
+    "type": "Transaction type",
+    "status": "Status",
+    "allTypes": "All types",
+    "allStatuses": "All statuses",
+    "favoritesOnly": "Favorites"
+  },
+  "sort": {
+    "label": "Sort by",
+    "newest": "Newest",
+    "price": "Price",
+    "surface": "Surface",
+    "bedrooms": "Bedrooms",
+    "epc": "EPC"
+  },
+  "table": {
+    "name": "Name",
+    "type": "Type",
+    "price": "Price",
+    "bedrooms": "Beds",
+    "surface": "Surface",
+    "epc": "EPC",
+    "status": "Status"
+  },
+  "actions": {
+    "edit": "Edit listing",
+    "delete": "Delete listing",
+    "favorite": "Toggle favorite"
+  },
+  "modal": {
+    "add": "Add listing",
+    "edit": "Edit listing"
+  },
+  "confirmDelete": {
+    "title": "Delete listing",
+    "body": "Delete \"{{name}}\"? This cannot be undone.",
+    "confirm": "Delete"
+  },
+  "notifications": {
+    "created": "Listing added",
+    "updated": "Listing updated",
+    "deleted": "Listing deleted",
+    "error": "Something went wrong."
+  },
+  "form": {
+    "url": "Listing URL",
+    "title": "Title",
+    "titlePlaceholder": "e.g. Bright townhouse near the park",
+    "transactionType": "Rent or buy",
+    "price": "Price",
+    "municipality": "Municipality",
+    "bedrooms": "Bedrooms",
+    "surfaceM2": "Surface (m²)",
+    "epc": "EPC",
+    "status": "Status",
+    "favorite": "Favorite",
+    "notes": "Notes",
+    "thumbnail": "Thumbnail",
+    "thumbnailUpload": "Upload image",
+    "thumbnailRemove": "Remove image",
+    "thumbnailDisabled": "Image upload is unavailable (Google client ID not configured).",
+    "uploadDone": "Image uploaded",
+    "uploadError": "Upload failed. Please try again.",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Add listing",
+    "required": "Required"
+  },
+  "detail": {
+    "back": "Back to listings",
+    "notFound": "This listing no longer exists.",
+    "previewBlocked": "If the preview is blank, this site blocks embedding — open it directly.",
+    "openListing": "Open listing"
+  }
+}

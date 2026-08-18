@@ -1,0 +1,92 @@
+{
+  "title": "Panden",
+  "add": "Pand toevoegen",
+  "empty": "Nog geen panden — voeg je eerste toe.",
+  "emptyFiltered": "Geen panden voldoen aan deze filters.",
+  "untitled": "Naamloos pand",
+  "perMonth": "/mnd",
+  "transactionType": {
+    "rent": "Huur",
+    "buy": "Koop"
+  },
+  "status": {
+    "new": "Nieuw",
+    "contacted": "Gecontacteerd",
+    "visited": "Bezocht",
+    "rejected": "Afgewezen"
+  },
+  "filters": {
+    "type": "Transactietype",
+    "status": "Status",
+    "allTypes": "Alle types",
+    "allStatuses": "Alle statussen",
+    "favoritesOnly": "Favorieten"
+  },
+  "sort": {
+    "label": "Sorteren op",
+    "newest": "Nieuwste",
+    "price": "Prijs",
+    "surface": "Oppervlakte",
+    "bedrooms": "Slaapkamers",
+    "epc": "EPC"
+  },
+  "table": {
+    "name": "Naam",
+    "type": "Type",
+    "price": "Prijs",
+    "bedrooms": "Slpk",
+    "surface": "Opp.",
+    "epc": "EPC",
+    "status": "Status"
+  },
+  "actions": {
+    "edit": "Pand bewerken",
+    "delete": "Pand verwijderen",
+    "favorite": "Favoriet wisselen"
+  },
+  "modal": {
+    "add": "Pand toevoegen",
+    "edit": "Pand bewerken"
+  },
+  "confirmDelete": {
+    "title": "Pand verwijderen",
+    "body": "\"{{name}}\" verwijderen? Dit kan niet ongedaan gemaakt worden.",
+    "confirm": "Verwijderen"
+  },
+  "notifications": {
+    "created": "Pand toegevoegd",
+    "updated": "Pand bijgewerkt",
+    "deleted": "Pand verwijderd",
+    "error": "Er ging iets mis."
+  },
+  "form": {
+    "url": "URL van het pand",
+    "title": "Titel",
+    "titlePlaceholder": "bv. Lichtrijke rijwoning bij het park",
+    "transactionType": "Huur of koop",
+    "price": "Prijs",
+    "municipality": "Gemeente",
+    "bedrooms": "Slaapkamers",
+    "surfaceM2": "Oppervlakte (m²)",
+    "epc": "EPC",
+    "status": "Status",
+    "favorite": "Favoriet",
+    "notes": "Notities",
+    "thumbnail": "Miniatuur",
+    "thumbnailUpload": "Afbeelding uploaden",
+    "thumbnailRemove": "Afbeelding verwijderen",
+    "thumbnailDisabled": "Afbeeldingen uploaden is niet beschikbaar (Google client-ID niet ingesteld).",
+    "uploadDone": "Afbeelding geüpload",
+    "uploadError": "Uploaden mislukt. Probeer opnieuw.",
+    "cancel": "Annuleren",
+    "save": "Opslaan",
+    "create": "Pand toevoegen",
+    "required": "Verplicht"
+  },
+  "detail": {
+    "back": "Terug naar panden",
+    "notFound": "Dit pand bestaat niet meer.",
+    "previewBlocked": "Als de preview leeg blijft, blokkeert deze site inbedding — open ze rechtstreeks.",
+    "openListing": "Pand openen"
+  }
+}

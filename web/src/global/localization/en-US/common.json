@@ -1,0 +1,17 @@
+{
+  "brand": "immo-search",
+  "tagline": "Save and compare places to rent or buy.",
+  "nav": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "openApp": "Open app"
+  },
+  "theme": {
+    "toggle": "Toggle color scheme"
+  },
+  "language": "Language",
+  "footer": {
+    "rights": "All rights reserved.",
+    "builtWith": "House-hunting, organised."
+  }
+}

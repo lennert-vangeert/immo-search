@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "immo-search-4cadb",
+    "prod": "immo-search-4cadb",
+    "demo": "demo-firebase-seed"
+  }
+}

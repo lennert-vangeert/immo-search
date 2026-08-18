@@ -1,0 +1,68 @@
+rules_version = '2';
+
+// Security rules for immo-search — a private, 2-account shared workspace.
+//   Access is gated on an email allow-list (isAllowed). Keep the emails below in
+//   sync with ALLOWED_USER_EMAILS in src/global/allowedUsers.ts, then redeploy.
+//   users    -> allow-listed users read profiles; each writes only their own.
+//   listings -> fully shared: any allow-listed user reads/writes/deletes all.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // The authoritative allow-list. This is the real gate (client checks are UX).
+    function isAllowed() {
+      return isSignedIn()
+        && request.auth.token.email in [
+      'lennert.vangeert@gmail.com',
+      'laura.volkaert14@gmail.com'
+      ];
+    }
+
+    function validUser(d) {
+      return d.displayName is string && d.displayName.size() <= 100
+        && d.email is string;
+    }
+
+    // Mirrors the ListingData type in src/data/listings.ts. Keep in sync when the
+    // model changes. The seed runs via the Admin SDK and bypasses these rules.
+    function validListing(d) {
+      return d.url is string && d.url.size() >= 1 && d.url.size() <= 2000
+        && d.transactionType in ['rent', 'buy']
+        && d.price is number
+        && d.title is string && d.title.size() <= 200
+        && d.municipality is string && d.municipality.size() <= 200
+        && (d.bedrooms == null || d.bedrooms is number)
+        && (d.surfaceM2 == null || d.surfaceM2 is number)
+        && (d.epc == null || d.epc in ['A+', 'A', 'B', 'C', 'D', 'E', 'F'])
+        && d.notes is string && d.notes.size() <= 5000
+        && (d.thumbnailFileId == null || d.thumbnailFileId is string)
+        && d.status in ['new', 'contacted', 'visited', 'rejected']
+        && d.isFavorite is bool
+        && d.createdBy is string
+        && d.createdAt is timestamp
+        && d.updatedAt is timestamp;
+    }
+
+    match /users/{uid} {
+      allow read: if isAllowed();
+      allow create, update: if isAllowed() && isOwner(uid)
+        && validUser(request.resource.data);
+      allow delete: if isAllowed() && isOwner(uid);
+    }
+
+    match /listings/{listingId} {
+      // Fully shared workspace — no owner check, only the allow-list.
+      allow read: if isAllowed();
+      allow create, update: if isAllowed()
+        && validListing(request.resource.data);
+      allow delete: if isAllowed();
+    }
+  }
+}

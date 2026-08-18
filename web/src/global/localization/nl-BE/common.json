@@ -1,0 +1,17 @@
+{
+  "brand": "immo-search",
+  "tagline": "Bewaar en vergelijk panden om te huren of kopen.",
+  "nav": {
+    "signIn": "Aanmelden",
+    "signOut": "Afmelden",
+    "openApp": "Open app"
+  },
+  "theme": {
+    "toggle": "Kleurschema wisselen"
+  },
+  "language": "Taal",
+  "footer": {
+    "rights": "Alle rechten voorbehouden.",
+    "builtWith": "Huizenjacht, georganiseerd."
+  }
+}
