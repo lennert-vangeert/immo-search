@@ -38,6 +38,10 @@ import {
 const authKey = (uid: string, folderId: string) =>
   `immo-drive-auth:${uid}:${folderId}`;
 
+// Set once a user has granted Drive consent; lets us reconnect silently next
+// session without showing the "Connect" button.
+const consentKey = (uid: string) => `immo-drive-consented:${uid}`;
+
 /**
  * Thumbnail picker backed by Google Drive + a shared folder.
  *
@@ -65,6 +69,19 @@ export default function ThumbnailField({
 
   useEffect(() => subscribeDriveConfig(setConfig), []);
 
+  // Reconnect silently if this account has consented before — no button needed.
+  useEffect(() => {
+    if (!isDriveConfigured() || connected || !uid) return;
+    if (!localStorage.getItem(consentKey(uid))) return;
+    let cancelled = false;
+    connectDrive()
+      .then(() => !cancelled && setConnected(true))
+      .catch(() => localStorage.removeItem(consentKey(uid)));
+    return () => {
+      cancelled = true;
+    };
+  }, [uid, connected]);
+
   useEffect(() => {
     if (config) {
       const ok =
@@ -83,6 +100,7 @@ export default function ThumbnailField({
     setBusy("connect");
     try {
       await connectDrive();
+      localStorage.setItem(consentKey(uid), "1");
       setConnected(true);
     } catch {
       fail();
