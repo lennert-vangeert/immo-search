@@ -1,8 +1,18 @@
 import { EPC_LABELS, type EpcLabel, type ListingStatus } from "@data/listings";
 import type { ListingWithId } from "@services/listings";
 
-export type SortKey = "newest" | "price" | "surface" | "bedrooms" | "epc";
+export type SortKey =
+  | "newest"
+  | "price"
+  | "pricePerM2"
+  | "surface"
+  | "bedrooms"
+  | "epc";
 export type SortDir = "asc" | "desc";
+
+/** Price per m² (buy: total/m², rent: monthly/m²), or null without a surface. */
+export const pricePerM2 = (l: ListingWithId): number | null =>
+  l.surfaceM2 && l.surfaceM2 > 0 ? l.price / l.surfaceM2 : null;
 
 export type ListingFilters = {
   transactionType: "all" | "rent" | "buy";
@@ -43,6 +53,8 @@ export const filterAndSortListings = (
     switch (sortKey) {
       case "price":
         return l.price;
+      case "pricePerM2":
+        return pricePerM2(l);
       case "surface":
         return l.surfaceM2;
       case "bedrooms":
@@ -94,6 +106,10 @@ export const isValidHttpUrl = (url: string): boolean => {
 /** Format a price with EUR grouping; rent gets a "/mo" style suffix via i18n. */
 export const formatPrice = (price: number): string =>
   `€${price.toLocaleString("nl-BE")}`;
+
+/** Format a €/m² value (rounded), or "—" when null. */
+export const formatPricePerM2 = (v: number | null): string =>
+  v == null ? "—" : `€${Math.round(v).toLocaleString("nl-BE")}/m²`;
 
 /** Mantine color for an EPC letter — green (best) → red (worst). */
 export const epcColor = (epc: EpcLabel | null): string => {

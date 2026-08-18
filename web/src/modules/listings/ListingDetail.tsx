@@ -40,12 +40,15 @@ import {
 import { deleteDriveFile, driveThumbUrl, hasDriveConsent } from "@services/drive";
 import { useListings } from "./useListings";
 import ListingForm from "./ListingForm";
+import Reactions from "./Reactions";
 import {
   epcColor,
   formatPrice,
+  formatPricePerM2,
   hostnameOf,
   isValidHttpUrl,
   listingLabel,
+  pricePerM2,
   statusColor,
 } from "./listingUi";
 
@@ -144,10 +147,13 @@ export default function ListingDetail() {
     });
   };
 
+  const ppm2 = pricePerM2(listing);
   const facts: { label: string; value: string }[] = [
     { label: t("table.type"), value: t(`transactionType.${listing.transactionType}`) },
     { label: t("table.price"), value: `${formatPrice(listing.price)}${priceSuffix}` },
   ];
+  if (ppm2 != null)
+    facts.push({ label: t("table.pricePerM2"), value: formatPricePerM2(ppm2) });
   if (listing.municipality)
     facts.push({ label: t("form.municipality"), value: listing.municipality });
   if (listing.bedrooms != null)
@@ -344,6 +350,13 @@ export default function ListingDetail() {
                   </Group>
                 ))}
               </Stack>
+            </Card>
+
+            <Card withBorder radius="md" padding="md">
+              <Text size="sm" fw={600} mb="xs">
+                {t("reactions.title")}
+              </Text>
+              <Reactions listing={listing} />
             </Card>
 
             {listing.notes && (

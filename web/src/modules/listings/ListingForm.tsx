@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Button,
   Group,
@@ -9,6 +10,8 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { notifications } from "@mantine/notifications";
+import { IconWand } from "@tabler/icons-react";
 import {
   EPC_LABELS,
   LISTING_STATUSES,
@@ -18,8 +21,10 @@ import {
   type TransactionType,
 } from "@data/listings";
 import type { ListingInput, ListingWithId } from "@services/listings";
+import { fetchListingPreview } from "@services/preview";
 import { useTranslate } from "@global/localization";
 import ThumbnailField from "./ThumbnailField";
+import { isValidHttpUrl } from "./listingUi";
 
 // Flat form state. Numbers use "" for "not set" (NumberInput's empty value).
 type ListingFormValues = {
@@ -67,6 +72,7 @@ export default function ListingForm({
   onCancel: () => void;
 }) {
   const { t } = useTranslate("listings");
+  const [autofilling, setAutofilling] = useState(false);
 
   const form = useForm<ListingFormValues>({
     initialValues: toFormValues(listing),
@@ -79,6 +85,36 @@ export default function ListingForm({
 
   const opts = <T extends string>(values: readonly T[], ns: string) =>
     values.map((value) => ({ value, label: t(`${ns}.${value}`) }));
+
+  // Pull title/price/notes from the listing page — fills only empty fields.
+  const handleAutofill = async () => {
+    setAutofilling(true);
+    try {
+      const p = await fetchListingPreview(form.values.url.trim());
+      let filled = 0;
+      if (p.title && !form.values.title.trim()) {
+        form.setFieldValue("title", p.title);
+        filled++;
+      }
+      if (p.price != null && form.values.price === "") {
+        form.setFieldValue("price", p.price);
+        filled++;
+      }
+      if (p.description && !form.values.notes.trim()) {
+        form.setFieldValue("notes", p.description);
+        filled++;
+      }
+      notifications.show(
+        filled > 0
+          ? { color: "green", message: t("form.autofillDone") }
+          : { color: "yellow", message: t("form.autofillEmpty") }
+      );
+    } catch {
+      notifications.show({ color: "red", message: t("form.autofillError") });
+    } finally {
+      setAutofilling(false);
+    }
+  };
 
   const handleSubmit = form.onSubmit((v) => {
     const input: ListingInput = {
@@ -107,6 +143,18 @@ export default function ListingForm({
           withAsterisk
           {...form.getInputProps("url")}
         />
+        <Group justify="flex-end" mt={-8}>
+          <Button
+            variant="subtle"
+            size="xs"
+            leftSection={<IconWand size={14} />}
+            loading={autofilling}
+            disabled={!isValidHttpUrl(form.values.url)}
+            onClick={handleAutofill}
+          >
+            {t("form.autofill")}
+          </Button>
+        </Group>
 
         <TextInput
           label={t("form.title")}

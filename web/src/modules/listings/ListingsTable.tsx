@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Badge,
+  Checkbox,
   Group,
   Image,
   Table,
@@ -19,10 +20,13 @@ import {
 import type { ListingWithId } from "@services/listings";
 import { driveThumbUrl } from "@services/drive";
 import { useTranslate } from "@global/localization";
+import Reactions from "./Reactions";
 import {
   epcColor,
   formatPrice,
+  formatPricePerM2,
   listingLabel,
+  pricePerM2,
   statusColor,
   type SortDir,
   type SortKey,
@@ -32,7 +36,9 @@ type Props = {
   listings: ListingWithId[];
   sortKey: SortKey;
   sortDir: SortDir;
+  selected: Set<string>;
   onSort: (key: SortKey) => void;
+  onToggleSelect: (id: string) => void;
   onOpen: (l: ListingWithId) => void;
   onEdit: (l: ListingWithId) => void;
   onDelete: (l: ListingWithId) => void;
@@ -43,7 +49,9 @@ export default function ListingsTable({
   listings,
   sortKey,
   sortDir,
+  selected,
   onSort,
+  onToggleSelect,
   onOpen,
   onEdit,
   onDelete,
@@ -88,19 +96,22 @@ export default function ListingsTable({
   };
 
   return (
-    <Table.ScrollContainer minWidth={720}>
+    <Table.ScrollContainer minWidth={900}>
       <Table highlightOnHover verticalSpacing="sm" stickyHeader>
         <Table.Thead>
           <Table.Tr>
+            <Table.Th w={40} />
             <Table.Th w={56} />
             <Th label={t("table.name")} />
             <Th label={t("table.type")} />
             <Th label={t("table.price")} sort="price" numeric />
+            <Th label={t("table.pricePerM2")} sort="pricePerM2" numeric />
             <Th label={t("table.bedrooms")} sort="bedrooms" numeric />
             <Th label={t("table.surface")} sort="surface" numeric />
             <Th label={t("table.epc")} sort="epc" />
             <Th label={t("table.status")} />
-            <Table.Th w={120} />
+            <Table.Th />
+            <Table.Th w={100} />
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -112,6 +123,14 @@ export default function ListingsTable({
                 style={{ cursor: "pointer" }}
                 onClick={() => onOpen(l)}
               >
+                <Table.Td>
+                  <Checkbox
+                    checked={selected.has(l.id)}
+                    onChange={() => onToggleSelect(l.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label={t("compare.select")}
+                  />
+                </Table.Td>
                 <Table.Td>
                   <Image
                     src={
@@ -161,6 +180,9 @@ export default function ListingsTable({
                 <Table.Td ta="right">
                   <Text fw={700}>{formatPrice(l.price)}</Text>
                 </Table.Td>
+                <Table.Td ta="right">
+                  <Text c="dimmed">{formatPricePerM2(pricePerM2(l))}</Text>
+                </Table.Td>
                 <Table.Td ta="right">{l.bedrooms ?? "—"}</Table.Td>
                 <Table.Td ta="right">
                   {l.surfaceM2 != null ? `${l.surfaceM2} m²` : "—"}
@@ -178,6 +200,9 @@ export default function ListingsTable({
                   <Badge variant="dot" color={statusColor(l.status)}>
                     {t(`status.${l.status}`)}
                   </Badge>
+                </Table.Td>
+                <Table.Td>
+                  <Reactions listing={l} compact />
                 </Table.Td>
                 <Table.Td>
                   <Group gap="xs" wrap="nowrap" justify="flex-end">

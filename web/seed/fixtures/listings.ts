@@ -9,7 +9,7 @@ import type { ListingData } from "../../src/data/listings";
  *   users. `createdAt`/`updatedAt` are stamped by the seed at write time.
  * - `thumbnailFileId` is null — real thumbnails come from in-app Drive uploads.
  */
-export type ListingFixture = Omit<ListingData, "createdBy">;
+export type ListingFixture = Omit<ListingData, "createdBy" | "reactions">;
 
 export const LISTING_FIXTURES: ListingFixture[] = [
   {

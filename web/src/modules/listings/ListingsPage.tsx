@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
 import {
+  Affix,
   Badge,
   Button,
   Container,
   Group,
   Loader,
   Modal,
+  Paper,
   Popover,
   SegmentedControl,
   Select,
@@ -20,10 +22,12 @@ import { notifications } from "@mantine/notifications";
 import {
   IconAdjustmentsHorizontal,
   IconArrowsSort,
+  IconColumns,
   IconLayoutGrid,
   IconList,
   IconPlus,
   IconStar,
+  IconX,
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -44,6 +48,7 @@ import { useListings } from "./useListings";
 import ListingForm from "./ListingForm";
 import ListingsTable from "./ListingsTable";
 import ListingsCards from "./ListingsCards";
+import CompareModal from "./CompareModal";
 import {
   DEFAULT_FILTERS,
   filterAndSortListings,
@@ -68,6 +73,26 @@ export default function ListingsPage() {
   const [filters, setFilters] = useState<ListingFilters>(DEFAULT_FILTERS);
   const [sortKey, setSortKey] = useState<SortKey>("newest");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [compareOpen, { open: openCompare, close: closeCompare }] =
+    useDisclosure(false);
+
+  const toggleSelect = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else if (next.size >= 3) {
+        notifications.show({ color: "yellow", message: t("compare.max") });
+        return prev;
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+
+  const selectedListings = listings.filter((l) => selected.has(l.id));
 
   const visible = useMemo(
     () => filterAndSortListings(listings, filters, sortKey, sortDir),
@@ -152,6 +177,7 @@ export default function ListingsPage() {
   const sortOptions = [
     { value: "newest", label: t("sort.newest") },
     { value: "price", label: t("sort.price") },
+    { value: "pricePerM2", label: t("sort.pricePerM2") },
     { value: "surface", label: t("sort.surface") },
     { value: "bedrooms", label: t("sort.bedrooms") },
     { value: "epc", label: t("sort.epc") },
@@ -329,7 +355,9 @@ export default function ListingsPage() {
           listings={visible}
           sortKey={sortKey}
           sortDir={sortDir}
+          selected={selected}
           onSort={handleSortClick}
+          onToggleSelect={toggleSelect}
           onOpen={openDetail}
           onEdit={startEdit}
           onDelete={handleDelete}
@@ -338,12 +366,54 @@ export default function ListingsPage() {
       ) : (
         <ListingsCards
           listings={visible}
+          selected={selected}
+          onToggleSelect={toggleSelect}
           onOpen={openDetail}
           onEdit={startEdit}
           onDelete={handleDelete}
           onToggleFavorite={handleToggleFavorite}
         />
       )}
+
+      {/* Comparison action bar */}
+      {selected.size > 0 && (
+        <Affix position={{ bottom: 20, left: 0, right: 0 }}>
+          <Group justify="center">
+            <Paper shadow="md" radius="xl" p="xs" withBorder>
+              <Group gap="xs" pl="sm">
+                <Text size="sm" fw={500}>
+                  {t("compare.selected", { count: selected.size })}
+                </Text>
+                <Button
+                  size="xs"
+                  radius="xl"
+                  leftSection={<IconColumns size={16} />}
+                  disabled={selected.size < 2}
+                  onClick={openCompare}
+                >
+                  {t("compare.button")}
+                </Button>
+                <Button
+                  size="xs"
+                  radius="xl"
+                  variant="subtle"
+                  color="gray"
+                  leftSection={<IconX size={16} />}
+                  onClick={() => setSelected(new Set())}
+                >
+                  {t("compare.clear")}
+                </Button>
+              </Group>
+            </Paper>
+          </Group>
+        </Affix>
+      )}
+
+      <CompareModal
+        listings={selectedListings}
+        opened={compareOpen && selectedListings.length >= 2}
+        onClose={closeCompare}
+      />
 
       <Modal
         opened={opened}

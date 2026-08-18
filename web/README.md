@@ -61,6 +61,14 @@ The scope stays `drive.file` (least privilege) throughout.
 3. Set the two allowed emails in `allowedUsers.ts` and `firestore.rules`, then
    `npx firebase deploy --only firestore:rules`.
 
+### Auto-fill from a listing URL
+
+The **Auto-fill** button in the listing form reads a page's Open Graph tags to
+pre-fill title/price/notes, via a Vercel serverless function at `web/api/preview.ts`
+(→ `/api/preview`). It only fetches a fixed allow-list of immo domains (no SSRF).
+The `/api` route exists on Vercel and under `vercel dev` — under plain
+`npm run dev` it 404s and the button shows a graceful "unavailable" message.
+
 ## Notes
 
 - **Thumbnails** upload to the uploader's own Google Drive (`drive.file` scope)

@@ -2,6 +2,7 @@ import {
   ActionIcon,
   Badge,
   Card,
+  Checkbox,
   Group,
   Image,
   SimpleGrid,
@@ -18,15 +19,20 @@ import {
 import type { ListingWithId } from "@services/listings";
 import { driveThumbUrl } from "@services/drive";
 import { useTranslate } from "@global/localization";
+import Reactions from "./Reactions";
 import {
   epcColor,
   formatPrice,
+  formatPricePerM2,
   listingLabel,
+  pricePerM2,
   statusColor,
 } from "./listingUi";
 
 type Props = {
   listings: ListingWithId[];
+  selected: Set<string>;
+  onToggleSelect: (id: string) => void;
   onOpen: (l: ListingWithId) => void;
   onEdit: (l: ListingWithId) => void;
   onDelete: (l: ListingWithId) => void;
@@ -35,6 +41,8 @@ type Props = {
 
 export default function ListingsCards({
   listings,
+  selected,
+  onToggleSelect,
   onOpen,
   onEdit,
   onDelete,
@@ -62,6 +70,16 @@ export default function ListingsCards({
                 h={160}
                 alt={label}
                 fallbackSrc="https://placehold.co/600x400?text=No+image"
+              />
+              <Checkbox
+                checked={selected.has(l.id)}
+                onChange={() => onToggleSelect(l.id)}
+                onClick={(e) => e.stopPropagation()}
+                aria-label={t("compare.select")}
+                pos="absolute"
+                top={8}
+                left={8}
+                styles={{ input: { cursor: "pointer" } }}
               />
               <ActionIcon
                 variant="white"
@@ -102,10 +120,17 @@ export default function ListingsCards({
               </Text>
             )}
 
-            <Text fw={800} fz="xl" variant="gradient" mt="xs">
-              {formatPrice(l.price)}
-              {priceSuffix}
-            </Text>
+            <Group justify="space-between" align="flex-end" mt="xs" wrap="nowrap">
+              <Text fw={800} fz="xl" variant="gradient">
+                {formatPrice(l.price)}
+                {priceSuffix}
+              </Text>
+              {pricePerM2(l) != null && (
+                <Text size="xs" c="dimmed">
+                  {formatPricePerM2(pricePerM2(l))}
+                </Text>
+              )}
+            </Group>
 
             <Group gap="xs" mt="xs">
               {l.bedrooms != null && (
@@ -133,11 +158,14 @@ export default function ListingsCards({
               )}
             </Group>
 
-            <Group justify="space-between" mt="md">
-              <Badge variant="dot" color={statusColor(l.status)}>
-                {t(`status.${l.status}`)}
-              </Badge>
-              <Group gap="xs">
+            <Group justify="space-between" mt="md" wrap="nowrap">
+              <Group gap="sm" wrap="nowrap">
+                <Badge variant="dot" color={statusColor(l.status)}>
+                  {t(`status.${l.status}`)}
+                </Badge>
+                <Reactions listing={l} compact />
+              </Group>
+              <Group gap="xs" wrap="nowrap">
                 <ActionIcon
                   variant="light"
                   aria-label={t("actions.edit")}

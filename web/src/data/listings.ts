@@ -15,6 +15,9 @@ export type EpcLabel = "A+" | "A" | "B" | "C" | "D" | "E" | "F";
 /** Shared triage stage for a listing. */
 export type ListingStatus = "new" | "contacted" | "visited" | "rejected";
 
+/** A per-person thumbs reaction (keyed by uid in `reactions`). */
+export type Reaction = "up" | "down";
+
 export const TRANSACTION_TYPES: TransactionType[] = ["rent", "buy"];
 export const EPC_LABELS: EpcLabel[] = ["A+", "A", "B", "C", "D", "E", "F"];
 export const LISTING_STATUSES: ListingStatus[] = [
@@ -47,6 +50,7 @@ export type ListingData = {
   thumbnailFileId: string | null; // Google Drive file id (public), or null
   status: ListingStatus; // shared triage stage, default "new"
   isFavorite: boolean; // shared favorite flag, default false
+  reactions: Record<string, Reaction>; // per-person 👍/👎, keyed by uid
   createdBy: string; // uid of the creator — display-only, NOT access control
 };
 

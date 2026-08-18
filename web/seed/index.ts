@@ -20,6 +20,7 @@ const seedListings = async (owners: SeedUser[]): Promise<number> => {
 
     await db.collection("listings").add({
       ...data,
+      reactions: {},
       createdBy: owner.uid,
       // Stagger createdAt so the "newest first" ordering is visible.
       createdAt: Timestamp.fromMillis(now - i * DAY_MS),

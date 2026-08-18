@@ -27,6 +27,7 @@
     "label": "Sorteren op",
     "newest": "Nieuwste",
     "price": "Prijs",
+    "pricePerM2": "Prijs / m²",
     "surface": "Oppervlakte",
     "bedrooms": "Slaapkamers",
     "epc": "EPC"
@@ -35,10 +36,27 @@
     "name": "Naam",
     "type": "Type",
     "price": "Prijs",
+    "pricePerM2": "€/m²",
     "bedrooms": "Slpk",
     "surface": "Opp.",
     "epc": "EPC",
     "status": "Status"
+  },
+  "reactions": {
+    "title": "Wat vinden jullie?",
+    "you": "Jij",
+    "partner": "Partner",
+    "none": "Nog geen reactie",
+    "up": "Vind ik leuk",
+    "down": "Vind ik niet leuk"
+  },
+  "compare": {
+    "button": "Vergelijken",
+    "title": "Panden vergelijken",
+    "clear": "Wissen",
+    "select": "Selecteren om te vergelijken",
+    "selected": "{{count}} geselecteerd",
+    "max": "Je kan tot 3 panden vergelijken."
   },
   "actions": {
     "edit": "Pand bewerken",
@@ -64,6 +82,10 @@
     "url": "Link naar het pand",
     "title": "Titel",
     "titlePlaceholder": "bv. Lichtrijke rijwoning bij het park",
+    "autofill": "Automatisch invullen",
+    "autofillDone": "Ingevuld wat we konden vinden.",
+    "autofillEmpty": "Geen details gevonden op die pagina.",
+    "autofillError": "Automatisch invullen is nu niet beschikbaar.",
     "transactionType": "Huur of koop",
     "price": "Prijs",
     "municipality": "Gemeente",

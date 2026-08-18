@@ -27,6 +27,7 @@
     "label": "Sort by",
     "newest": "Newest",
     "price": "Price",
+    "pricePerM2": "Price / m²",
     "surface": "Surface",
     "bedrooms": "Bedrooms",
     "epc": "EPC"
@@ -35,10 +36,27 @@
     "name": "Name",
     "type": "Type",
     "price": "Price",
+    "pricePerM2": "€/m²",
     "bedrooms": "Beds",
     "surface": "Surface",
     "epc": "EPC",
     "status": "Status"
+  },
+  "reactions": {
+    "title": "What you think",
+    "you": "You",
+    "partner": "Partner",
+    "none": "No reaction yet",
+    "up": "Like",
+    "down": "Dislike"
+  },
+  "compare": {
+    "button": "Compare",
+    "title": "Compare listings",
+    "clear": "Clear",
+    "select": "Select for comparison",
+    "selected": "{{count}} selected",
+    "max": "You can compare up to 3 listings."
   },
   "actions": {
     "edit": "Edit listing",
@@ -64,6 +82,10 @@
     "url": "Listing URL",
     "title": "Title",
     "titlePlaceholder": "e.g. Bright townhouse near the park",
+    "autofill": "Auto-fill from link",
+    "autofillDone": "Filled in what we could find.",
+    "autofillEmpty": "Couldn't find details on that page.",
+    "autofillError": "Auto-fill isn't available right now.",
     "transactionType": "Rent or buy",
     "price": "Price",
     "municipality": "Municipality",

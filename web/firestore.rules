@@ -45,6 +45,7 @@ service cloud.firestore {
         && (d.thumbnailFileId == null || d.thumbnailFileId is string)
         && d.status in ['new', 'contacted', 'visited', 'rejected']
         && d.isFavorite is bool
+        && (!('reactions' in d) || d.reactions is map)
         && d.createdBy is string
         && d.createdAt is timestamp
         && d.updatedAt is timestamp;

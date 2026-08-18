@@ -1,6 +1,7 @@
 import {
   addDoc,
   deleteDoc,
+  deleteField,
   doc,
   onSnapshot,
   orderBy,
@@ -9,15 +10,18 @@ import {
   updateDoc,
   type Unsubscribe,
 } from "firebase/firestore";
-import { listingsCol, type Listing } from "@data/listings";
+import { listingsCol, type Listing, type Reaction } from "@data/listings";
 
 /** A listing document plus its Firestore id (what the UI consumes). */
 export type ListingWithId = Listing & { id: string };
 
-/** Fields a user supplies on create/edit — server/auth manage the rest. */
+/**
+ * Fields a user supplies on create/edit. `reactions` is excluded — it's managed
+ * per-key via `setReaction` so the form can never clobber the other person's vote.
+ */
 export type ListingInput = Omit<
   Listing,
-  "createdBy" | "createdAt" | "updatedAt"
+  "createdBy" | "createdAt" | "updatedAt" | "reactions"
 >;
 
 /** Live-subscribe to all listings, newest first. Returns the unsubscribe fn. */
@@ -36,11 +40,27 @@ export const createListing = async (
 ): Promise<string> => {
   const ref = await addDoc(listingsCol(), {
     ...input,
+    reactions: {},
     createdBy,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
   return ref.id;
+};
+
+/**
+ * Set (or clear) the current user's reaction. Uses a dot-path update so only
+ * this user's key changes — the other person's vote is never overwritten.
+ */
+export const setReaction = async (
+  id: string,
+  uid: string,
+  reaction: Reaction | null
+): Promise<void> => {
+  await updateDoc(doc(listingsCol(), id), {
+    [`reactions.${uid}`]: reaction === null ? deleteField() : reaction,
+    updatedAt: serverTimestamp(),
+  });
 };
 
 export const updateListing = async (
